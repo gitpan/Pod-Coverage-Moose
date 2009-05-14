@@ -17,8 +17,11 @@ META.yml
 README
 t/00_use.t
 t/10_basic.t
+t/30_compat_attribute-helpers.t
 t/lib/IsMoose.pm
 t/lib/MooseRole.pm
+t/lib/TestAttributeHelpers.pm
+t/lib/TestAttributeHelpers_Consumer.pm
 t_author/01_pod.t
 t_author/02_pod-coverage.t
 t_author/03_kwalitee.t

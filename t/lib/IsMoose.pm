@@ -1,4 +1,8 @@
-=pod BOGUS
+=pod
+
+=head2 IsMoose->baz
+
+The baz method
 
 =cut
 
@@ -9,5 +13,7 @@ use namespace::clean -except => 'meta';
 with 'MooseRole';
 
 sub bar { }
+
+sub baz { }
 
 1;

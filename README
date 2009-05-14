@@ -27,6 +27,10 @@ METHODS
   meta
     Moose meta object.
 
+  BUILD
+    Initialises the internal Pod::Coverage object. It uses the meta object
+    to find all methods and attribute methods imported via roles.
+
 DELEGATED METHODS
   Delegated to the traditional Pod::Coverage object are
     coverage
@@ -42,10 +46,6 @@ EXTENDED METHODS
     traditional Pod::Coverage object will be returned. This is done so you
     don't get in trouble for mixing Moose with non Moose classes in your
     project.
-
-  BUILD
-    Initialises the internal Pod::Coverage object. It uses the meta object
-    to find all methods and attribute methods imported via roles.
 
 SEE ALSO
     Moose, Pod::Coverage, Test::Pod::Coverage

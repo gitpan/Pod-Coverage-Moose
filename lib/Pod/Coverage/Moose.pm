@@ -14,7 +14,7 @@ use Class::MOP;
 
 use namespace::clean -except => 'meta';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -66,6 +66,45 @@ has _pod_coverage => (
 
 L<Moose> meta object.
 
+=head2 BUILD
+
+Initialises the internal L<Pod::Coverage> object. It uses the meta object
+to find all methods and attribute methods imported via roles.
+
+=cut
+
+sub BUILD {
+    my ($self, $args) = @_;
+
+    my $meta    = $self->package->meta;
+    my @trustme = @{ $args->{trustme} || [] };
+
+    push @trustme, qr/^meta$/;
+    push @trustme,                                          # MooseX-AttributeHelpers hack
+        map  { qr/^$_$/ }
+        map  { $_->name }
+        grep { $_->isa('MooseX::AttributeHelpers::Meta::Method::Provided') }
+        $meta->get_all_methods
+            unless $meta->isa('Moose::Meta::Role');
+    push @trustme, 
+        map { qr/^$_$/ }                                    # turn value into a regex
+        map {                                               # iterate over all roles of the class
+            my $role = $_;
+            $role->get_method_list,
+            map {                                           # iterate over attributes
+                my $attr = $role->get_attribute($_);
+                ($attr->{is} && $attr->{is} eq any(qw( rw ro wo )) ? $_ : ()),  # accessors
+                grep defined, map { $attr->{ $_ } }                             # other attribute methods
+                    qw( clearer predicate reader writer accessor );
+            } $role->get_attribute_list,
+        } 
+        $meta->calculate_all_roles;
+
+    $args->{trustme} = \@trustme;
+
+    $self->_pod_coverage(Pod::Coverage->new(%$args));
+}
+
 =head1 DELEGATED METHODS
 
 =head2 Delegated to the traditional L<Pod::Coverage> object are
@@ -109,39 +148,6 @@ around new => sub {
 
     return $self->$next(@args);
 };
-
-=head2 BUILD
-
-Initialises the internal L<Pod::Coverage> object. It uses the meta object
-to find all methods and attribute methods imported via roles.
-
-=cut
-
-sub BUILD {
-    my ($self, $args) = @_;
-
-    my $meta    = $self->package->meta;
-    my @trustme = @{ $args->{trustme} || [] };
-
-    push @trustme, qr/^meta$/;
-    push @trustme, 
-        map { qr/^$_$/ }                                    # turn value into a regex
-        map {                                               # iterate over all roles of the class
-            my $role = $_;
-            $role->get_method_list,
-            map {                                           # iterate over attributes
-                my $attr = $role->get_attribute($_);
-                ($attr->{is} && $attr->{is} eq any(qw( rw ro wo )) ? $_ : ()),  # accessors
-                grep defined, map { $attr->{ $_ } }                             # other attribute methods
-                    qw( clearer predicate reader writer accessor );
-            } $role->get_attribute_list,
-        } 
-        $meta->calculate_all_roles;
-
-    $args->{trustme} = \@trustme;
-
-    $self->_pod_coverage(Pod::Coverage->new(%$args));
-}
 
 1;
 

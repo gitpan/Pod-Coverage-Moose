@@ -1,4 +1,4 @@
-use inc::Module::Install 0.67;
+use inc::Module::Install 0.75;
 
 name     'Pod-Coverage-Moose';
 all_from 'lib/Pod/Coverage/Moose.pm';
